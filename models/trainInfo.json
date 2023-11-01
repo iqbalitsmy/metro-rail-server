@@ -1,0 +1,47 @@
+[
+    {
+        "name": "AGHNIBINA EXPRESS (735)",
+        "from": {
+            "arrival": "",
+            "halt": 0,
+            "departure": "11:30 am BST",
+            "duration": ""
+        },
+        "to": {
+            "arrival": "11:57 am BST",
+            "halt": "05 min",
+            "departure": "12:02 pm BST",
+            "duration": "00:27 h"
+        }
+    },
+    {
+        "name": "MOHANAGAR EXPRESS (722)",
+        "from": {
+            "arrival": "",
+            "halt": 0,
+            "departure": "09:20 pm BST",
+            "duration": ""
+        },
+        "to": {
+            "arrival": " 09:47 pm BST",
+            "halt": "05 min",
+            "departure": "12:02 pm BST",
+            "duration": "00:27 h"
+        }
+    },
+    {
+        "name": "AGHNIBINA EXPRESS (731)",
+        "from": {
+            "arrival": "",
+            "halt": 0,
+            "departure": "11:30 am BST",
+            "duration": ""
+        },
+        "to": {
+            "arrival": "11:57 am BST",
+            "halt": "05 min",
+            "departure": "12:02 pm BST",
+            "duration": "00:27 h"
+        }
+    }
+]
