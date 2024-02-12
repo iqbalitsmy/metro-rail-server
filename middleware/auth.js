@@ -1,22 +1,52 @@
-const ErrorHandler = require("../utils/ErrorHandler");
-const jwt = require("jsonwebtoken");
-const User = require("../models/userModel");
-const catchAsyncErrors = require("./catchAsyncError");
+const jwt = require("jsonwebtoken")
+const jwtSecret =
+    "4715aed3c946f7b0a38e6b534a9583628d84e96d10fbc04700770d572af3dce43625dd"
 
 
-//  is authenticate user or not 
-
-exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
-
-    const { token } = req.cookies;
-    if (!token) {
-        return next(new ErrorHandler("Please Login to access this resource", 401));
+// ------- admin authorization-------
+exports.adminAuth = (req, res, next) => {
+    const token = req.cookies.jwt
+    if (token) {
+        jwt.verify(token, jwtSecret, (err, decodedToken) => {
+            if (err) {
+                return res.status(401).json({ message: "Not authorized" })
+            } else {
+                if (decodedToken.role !== "admin") {
+                    return res.status(401).json({ message: "Not authorized" })
+                } else {
+                    next()
+                }
+            }
+        })
+    } else {
+        return res
+            .status(401)
+            .json({ message: "Not authorized, token not available" })
     }
-    const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+}
 
-    req.user = await User.findById(decodedData.id);
-    next()
 
-});
-
-//admin role add here
+// ------- user authorization-------
+exports.userAuth = (req, res, next) => {
+    const token = req.cookies.jwt;
+    if (token) {
+        jwt.verify(token, jwtSecret, (err, decodedToken) => {
+            if (err) {
+                console.log(err)
+                return res.status(401).json({ message: "Not authorized" })
+            } else {
+                if ((decodedToken.role === "Basic") || (decodedToken.role === "basic") || (decodedToken.role === "admin")) {
+                    req.id = decodedToken.id;
+                    next()
+                } else {
+                    return res.status(401).json({ message: "Not authorized" })
+                }
+            }
+        })
+    } else {
+        console.log("Not authorized, token not available")
+        return res
+            .status(401)
+            .json({ message: "Not authorized, token not available" })
+    }
+}
