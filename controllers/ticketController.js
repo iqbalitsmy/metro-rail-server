@@ -35,7 +35,7 @@ exports.addTicket = async (req, res, next) => {
         // find to station
         const toStation = await getDataById("station", toStationId);
         let ticket;
-        console.log(userData, fromStation, fromStation)
+        // console.log(userData, fromStation, fromStation)
         if (userData && fromStation && fromStation) {
             ticket = await Ticket.create({
                 fromStationId,
@@ -85,7 +85,62 @@ exports.addTicket = async (req, res, next) => {
     }
 }
 
-// --------get user Ticket-------------------------
+
+// -------get tickets email-------------
+exports.getTicketMail = async (req, res, next) => {
+    const id = req.params.id;
+    if (!id) {
+        return res.status(404).json({ message: "Ticket not found" });
+    }
+    try {
+        const ticketData = await Ticket.findById(id);
+
+        if (!ticketData) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
+
+        // Find user
+        const userData = await getDataById("user", ticketData.userId);
+        // find from station
+        const fromStation = await getDataById("station", ticketData.fromStationId);
+        // find to station
+        const toStation = await getDataById("station", ticketData.toStationId);
+        let ticket;
+        // console.log(userData, fromStation, fromStation)
+
+        if (userData && fromStation && fromStation) {
+            const data = {
+                id: ticketData._id,
+                name: userData?.name,
+                email: userData?.email,
+                payment: userData?.payment,
+                seat: ticketData.quantity,
+                from: fromStation?.name,
+                to: toStation?.name,
+            }
+            await generatePDF(data);
+            // await generateQr(data);
+            await sendMail(data);
+        } else {
+            return res.status(400).json({
+                message: "Something wrong. Please try again 2",
+            });
+        }
+
+        res.status(201).json({
+            message: "Email successfully set",
+            ticket: ticketData._id,
+        });
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({
+            message: "Email not set",
+            error: error.message,
+        });
+    }
+}
+
+// --------get user all Ticket-------------------------
 exports.userTickets = async (req, res, next) => {
     const id = req.id;
     // console.log(id)
@@ -129,7 +184,7 @@ exports.tickets = async (req, res, next) => {
             const fromStation = await getDataById("station", ticketData.fromStationId);
             const toStation = await getDataById("station", ticketData.toStationId);
             const user = await getDataById("user", ticketData?.userId);
-            console.log(fromStation, toStation, user)
+            // console.log(fromStation, toStation, user)
             // Return ticket object with station information
             return {
                 fromStation: fromStation?.name,
@@ -138,7 +193,7 @@ exports.tickets = async (req, res, next) => {
                 ...ticketData.toObject() // Convert Mongoose document to plain JavaScript object
             };
         }));
-        console.log(tickets)
+        // console.log(tickets)
 
         res.status(200).json(tickets);
     } catch (error) {
@@ -155,11 +210,25 @@ exports.ticket = async (req, res, next) => {
     }
     try {
         const ticket = await Ticket.findById(ticketId);
+
         if (!ticket) {
             return res.status(404).json({ message: 'Ticket not found' });
         }
 
-        res.status(200).json(ticket);
+        const fromStation = await getDataById("station", ticket.fromStationId);
+        const toStation = await getDataById("station", ticket.toStationId);
+
+        const data = {
+            ...ticket.toObject(),
+            fromStation: fromStation.name,
+            toStation: toStation.name,
+        }
+        console.log(data);
+
+        // ticket.fromStation = fromStation;
+        // ticket.toStation = toStation;
+
+        res.status(200).json(data);
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
@@ -168,12 +237,13 @@ exports.ticket = async (req, res, next) => {
 
 // --------update ticket-------------------------
 exports.updateTicket = async (req, res, next) => {
-    const { fromStationId, toStationId, userId, price, time, purchaseDate } = req.body;
+    const { fromStationId, toStationId, userId, quantity, price, time, purchaseDate } = req.body;
     const ticketId = req.params.id;
     try {
         const ticket = await Ticket.findById(ticketId);
 
         if (!ticket) {
+            console.log("Ticket not found");
             return res.status(404).json({ message: "Ticket not found" });
         }
 
@@ -187,6 +257,9 @@ exports.updateTicket = async (req, res, next) => {
 
         if (price) {
             ticket.price = price;
+        }
+        if (quantity) {
+            ticket.quantity = quantity;
         }
 
         if (time) {
@@ -208,18 +281,22 @@ exports.updateTicket = async (req, res, next) => {
 
 // --------cancel ticket-------------------------
 exports.cancelTicket = async (req, res, next) => {
-    const { payment } = req.body;
+    const { payment, refundPaymentMethods, refundPaymentMobNumb } = req.body;
     const ticketId = req.params.id;
     try {
         const ticket = await Ticket.findById(ticketId);
 
-        if (payment) {
-            ticket.payment = payment;
-        }
-
-
         if (!ticket) {
             return res.status(404).json({ message: "Ticket not found" });
+        }
+        if (payment && refundPaymentMethods && refundPaymentMobNumb) {
+            ticket.payment = payment;
+            ticket.refundPaymentMethods = refundPaymentMethods;
+            ticket.refundPaymentMobNumb = refundPaymentMobNumb;
+
+        } else {
+            console.log("Input is missing")
+            return res.status(404).json({ message: "Input is missing" });
         }
 
         // Save the updated ticket
@@ -227,9 +304,42 @@ exports.cancelTicket = async (req, res, next) => {
 
         res.status(200).json({ message: "Ticket successfully updated", updatedTicket });
     } catch (error) {
+        console.log("An error occurred", error.message);
         res.status(400).json({ message: "An error occurred", error: error.message });
     }
 };
+
+
+// update ticket refund from admin
+exports.refundRequest = async (req, res, next) => {
+    const { payment } = req.body;
+    const ticketId = req.params.id;
+    try {
+        const ticket = await Ticket.findById(ticketId);
+
+        if (!ticket) {
+            return res.status(404).json({ message: "Ticket not found" });
+        }
+        if (payment) {
+            ticket.payment = payment;
+
+        } else {
+            console.log("Input is missing")
+            return res.status(404).json({ message: "Input is missing" });
+        }
+
+        // Save the updated ticket
+        const updatedTicket = await ticket.save();
+
+        res.status(200).json({ message: "Ticket successfully updated", updatedTicket });
+    } catch (error) {
+        console.log("An error occurred", error.message);
+        res.status(400).json({ message: "An error occurred", error: error.message });
+    }
+};
+
+
+
 
 // --------get cancel tickets-------------------------
 exports.getCancelTickets = async (req, res, next) => {

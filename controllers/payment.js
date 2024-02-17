@@ -20,7 +20,7 @@ const stripe = require("stripe")("sk_test_51OfyfmCocyN0DGeBsaQOxrHU2t0MmikPuZWOV
 exports.checkoutTicket = async (req, res, next) => {
     console.log("Arrive")
     const { fromStationId, toStationId, price } = req.body;
-    console.log(fromStationId, toStationId, price)
+    // console.log(fromStationId, toStationId, price)
     try {
         // find from station
         const fromStation = await getDataById("station", fromStationId);

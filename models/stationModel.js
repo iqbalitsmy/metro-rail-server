@@ -10,10 +10,6 @@ const stationSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    stationSerial: {
-        type: Number,
-        required: true,
-    },
     status: {
         type: String,
         required: true,

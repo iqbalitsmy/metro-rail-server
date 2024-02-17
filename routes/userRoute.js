@@ -8,6 +8,7 @@ const uploadImage = require("../utils/uploadImage");
 router.route("/register").post(register);
 router.route("/login").post(login);
 router.route("/logout").get(userAuth, logout);
+
 // Update user
 router.route("/update/:id").put(updateUser);
 
@@ -15,7 +16,7 @@ router.route("/update/:id").put(updateUser);
 router.route("/me").get(userAuth, getUserDetails);
 
 // --------get a user from admin-------------------------
-router.route("/user/:id").get(adminAuth, user);
+router.route("/user/:id").get( user);
 
 // get all user from admin
 router.route("/users").get(adminAuth, users);

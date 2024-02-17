@@ -2,11 +2,10 @@ const Station = require('../models/stationModel');
 
 // -------add Station-------------
 exports.addStation = async (req, res, next) => {
-    const { name, location, stationSerial, status } = req.body;
+    const { name, location, status } = req.body;
     await Station.create({
         name,
         location,
-        stationSerial,
         status
     })
         .then((station) => {
@@ -23,6 +22,21 @@ exports.addStation = async (req, res, next) => {
         });
 }
 
+// --------get a station from admin-------------------------
+exports.station = async (req, res, next) => {
+    const id = req.params.id;
+    try {
+        const station = await Station.findById(id);
+
+        if (!station) {
+            return res.status(404).json({ message: 'Station not found' });
+        }
+
+        res.status(200).json(station);
+    } catch (error) {
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+};
 
 // --------get all station-------------------------
 exports.stations = async (req, res, next) => {
@@ -37,7 +51,8 @@ exports.stations = async (req, res, next) => {
 
 // --------update station-------------------------
 exports.updateStation = async (req, res, next) => {
-    const { id, name, location, status } = req.body;
+    const id = req.params.id;
+    const { name, location, status } = req.body;
 
     try {
         const station = await Station.findById(id);
@@ -66,15 +81,15 @@ exports.updateStation = async (req, res, next) => {
 
         res.status(200).json({ message: "Station successfully updated", station: updatedStation });
     } catch (error) {
+        console.log("Error: ", error);
         res.status(400).json({ message: "An error occurred", error: error.message });
     }
 };
 
 
-
 // --------delete station-------------------------
 exports.deleteStation = async (req, res, next) => {
-    const { id } = req.body
+    const id = req.params.id;
     await Station.findById(id)
         .then(station => station.deleteOne())
         .then(station =>

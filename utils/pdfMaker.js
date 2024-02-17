@@ -20,13 +20,17 @@ const generatePDF = async (userData) => {
     const fileName = `./pdf/${userData.id}.pdf`;
     doc.pipe(fs.createWriteStream(fileName));
 
+    // logo add
+    const logo = './assets/images.png'
+    doc.image(logo, 50, 0, { width: 80 });
+
     // Add user information to the PDF
     doc.fontSize(12);
     doc.text(`Ticket ID: ${userData.id}`);
-    doc.text(`Name: ${userData.name}`);
+    doc.text(`Name: ${userData?.name}`);
     doc.text(`Email: ${userData.email}`);
-    doc.text(`From: ${userData.from}`);
-    doc.text(`To: ${userData.to}`);
+    doc.text(`From: ${userData?.from}`);
+    doc.text(`To: ${userData?.to}`);
 
     // Add QR code to the PDF
     const qrCodeImage = await generateQRCode(JSON.stringify(userData));
