@@ -40,6 +40,18 @@ exports.station = async (req, res, next) => {
 
 // --------get all station-------------------------
 exports.stations = async (req, res, next) => {
+
+    try {
+        const station = await Station.find({ status: 'active' });
+        res.status(200).json(station);
+    } catch (error) {
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+};
+
+// --------get all station-------------------------
+exports.adminStations = async (req, res, next) => {
+
     try {
         const station = await Station.find();
         res.status(200).json(station);
@@ -101,6 +113,7 @@ exports.deleteStation = async (req, res, next) => {
                 .json({ message: "An error occurred", error: error.message })
         )
 }
+
 
 // --------delete stations-------------------------
 exports.deleteStations = async (req, res, next) => {

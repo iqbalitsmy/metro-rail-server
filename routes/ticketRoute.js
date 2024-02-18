@@ -36,6 +36,7 @@ router.route("/cancel-tickets").get(adminAuth, getCancelTickets);
 router.route("/numof-cancel-tickets").get(getNumOfCancelTickets);
 
 router.route("/delete-ticket/:id").delete(adminAuth, deleteTicket);
+// Delete many
 router.route("/delete-tickets").delete(adminAuth, deleteTickets);
 
 

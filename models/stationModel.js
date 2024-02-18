@@ -13,7 +13,7 @@ const stationSchema = new mongoose.Schema({
     status: {
         type: String,
         required: true,
-        um: ['active', 'deactive'],
+        um: ['active', 'deactivate'],
         default: 'active',
     },
 });
