@@ -29,6 +29,7 @@ const generatePDF = async (userData) => {
     doc.text(`Ticket ID: ${userData.id}`);
     doc.text(`Name: ${userData?.name}`);
     doc.text(`Email: ${userData.email}`);
+    doc.text(`Number of seat: ${userData.seat}`);
     doc.text(`From: ${userData?.from}`);
     doc.text(`To: ${userData?.to}`);
 
